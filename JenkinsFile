@@ -1,6 +1,6 @@
 node{
     stage('Git checkout'){
-        git 'https://github.com/shronik/Spring.git'
+        git 'https://github.com/Shronik/Spring.git'
     }
     
     stage('Maven clean and compile'){
