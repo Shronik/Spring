@@ -1,0 +1,42 @@
+node{
+    stage('Git checkout'){
+        git 'https://github.com/shronik/Spring.git'
+    }
+    
+    stage('Maven clean and compile'){
+        def mavenHome = tool name: 'maven3', type: 'maven'
+        def mavenCMD = "${mavenHome}/bin/mvn"
+        sh "${mavenCMD} compile"
+    }
+    
+    stage('Sonar quality check'){
+        def mavenHome = tool name: 'maven3', type: 'maven'
+        def mavenCMD = "${mavenHome}/bin/mvn"
+        sh "${mavenCMD} sonar:sonar"
+    }
+    
+    stage('Maven build test and package'){
+        def mavenHome = tool name: 'maven3', type: 'maven'
+        def mavenCMD = "${mavenHome}/bin/mvn"
+        sh "${mavenCMD} package"
+    }
+          
+    stage('Building docker image'){
+        sh 'docker build -t shronik/cicd:1.0.0 .'
+    }
+    
+    stage('Pushing docker image'){
+        withCredentials([string(credentialsId: 'dockerpwd', variable: 'dockerhubpass')]) {
+        sh "docker login -u shronik -p ${dockerhubpass}"
+        }
+        sh 'docker push shronik/cicd:1.0.0'
+    }
+    
+    stage('Deploy container'){
+        sh 'docker pull shronik/cicd:1.0.0'
+    }
+           
+    stage('Run container'){
+        sh 'docker run -p 8888:8080 -d shronik/cicd:1.0.0'
+    }
+}
